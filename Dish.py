@@ -55,3 +55,14 @@ class DishList(Resource):
         db.session.commit()
 
         return {'message': '菜品信息更新成功'}, 200
+
+    def delete(self, dish_id: int):
+        dish = Dishes.query.get(dish_id)
+
+        if not dish:
+            return {'message': '菜品不存在'}, 400
+
+        db.session.delete(dish)
+        db.session.commit()
+
+        return {'message': '删除成功'}
