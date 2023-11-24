@@ -40,3 +40,18 @@ class Dishes(db.Model):
     @staticmethod
     def return_all():
         return {'dishes': list(map(lambda x: Dishes.to_json(x), Dishes.query.all()))}
+
+
+class Employee(db.Model):
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    emp_id = db.Column(db.String(10), unique=True, nullable=False)
+    name = db.Column(db.String(50), nullable=False)
+    gender = db.Column(db.String(10), nullable=False)
+    age = db.Column(db.Integer, nullable=False)
+    salary = db.Column(db.Float, nullable=False)
+
+
+class DiscountRules(db.Model):
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    spending_amount = db.Column(db.Float, nullable=False)
+    discount_percentage = db.Column(db.Float, nullable=False)

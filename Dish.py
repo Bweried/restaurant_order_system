@@ -39,5 +39,19 @@ class DishList(Resource):
             db.session.commit()
             return {'message': '添加成功'}, 201
 
-    def put(self):
-        pass
+    def put(self, dish_id: int):
+        dish = Dishes.query.get(dish_id)
+
+        if not dish:
+            return {'message': '菜品不存在'}, 400
+
+        data = dish_parse.parse_args()
+
+        # 更新菜品信息
+        dish.name = data['name']
+        dish.D_class = data['class']
+        dish.price = data['price']
+
+        db.session.commit()
+
+        return {'message': '菜品信息更新成功'}, 200

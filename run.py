@@ -3,7 +3,8 @@ from flask_restful import Api
 from flask_migrate import Migrate
 
 from User import *
-from Dish import *
+from Dish import DishList
+from employee import EmpList
 from models import *
 
 app = Flask(__name__)
@@ -27,6 +28,10 @@ api.add_resource(TokenRefresh, '/token/refresh')
 # Dishes
 api.add_resource(DishList, '/dish/')
 api.add_resource(DishList, '/dish/<int:dish_id>', endpoint='dish_list')
+
+# Employee
+api.add_resource(EmpList, '/emp/')
+api.add_resource(EmpList, '/emp/<int:emp_id>', endpoint='emp_list')
 
 if __name__ == '__main__':
     app.run(debug=True)
