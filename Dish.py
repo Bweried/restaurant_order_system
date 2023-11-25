@@ -8,15 +8,14 @@ dish_parse.add_argument('price', help='This field cannot be blank', required=Tru
 
 
 class DishList(Resource):
-    def get(self, dish_id: int | None = None):
-        if dish_id is not None:
-            dish = Dishes.query.get(dish_id)
+    def get(self, d_id: int | None = None):
+        if d_id is not None:
+            dish = Dishes.query.get(d_id)
             if dish:
                 return Dishes.to_json(dish)
             else:
                 return {'message': 'Dish not fount'}, 404
-        else:
-            return Dishes.return_all()
+        return Dishes.return_all()
 
     def post(self):
         data = dish_parse.parse_args()
@@ -39,8 +38,8 @@ class DishList(Resource):
             db.session.commit()
             return {'message': '添加成功'}, 201
 
-    def put(self, dish_id: int):
-        dish = Dishes.query.get(dish_id)
+    def put(self, d_id: int):
+        dish = Dishes.query.get(d_id)
 
         if not dish:
             return {'message': '菜品不存在'}, 400
@@ -56,8 +55,8 @@ class DishList(Resource):
 
         return {'message': '菜品信息更新成功'}, 200
 
-    def delete(self, dish_id: int):
-        dish = Dishes.query.get(dish_id)
+    def delete(self, d_id: int):
+        dish = Dishes.query.get(d_id)
 
         if not dish:
             return {'message': '菜品不存在'}, 400

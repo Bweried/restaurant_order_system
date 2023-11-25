@@ -1,6 +1,6 @@
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
-from models import db, UserModel, AdminModel
+from models import db, UserModel, AdminModel, RevokedTokenModel
 
 admin_parse = reqparse.RequestParser()
 admin_parse.add_argument('username', help='This field cannot be blank', required=True)
@@ -58,8 +58,28 @@ class AdminLogin(Resource):
             return {'message': '密码错误'}
 
 
-class AdminLogout(Resource):
-    pass
+class AdminAccessLogout(Resource):
+    @jwt_required()
+    def post(self):
+        jti = get_jwt()
+        try:
+            revoked_token = RevokedTokenModel(jti=jti)
+            revoked_token.add()
+            return {'message': 'Access Token has been revoked'}
+        except:
+            return {'message': 'Something went wrong'}, 500
+
+
+class AdminRefreshLogout(Resource):
+    @jwt_required(refresh=True)
+    def post(self):
+        jti = get_jwt()
+        try:
+            revoked_token = RevokedTokenModel(jti=jti)
+            revoked_token.add()
+            return {'message': 'Refresh Token has been revoked'}
+        except:
+            return {'message': 'Something went wrong'}, 500
 
 
 class UserRegistration(Resource):
@@ -113,19 +133,42 @@ class UserLogin(Resource):
 
 
 class UserLogoutAccess(Resource):
+    @jwt_required()
     def post(self):
-        return {'message': 'User logout'}
+        jti = get_jwt()['jti']
+        print(get_jwt())
+
+        try:
+            revoked_token = RevokedTokenModel(jti=jti)
+            revoked_token.add()
+            return {'message': 'Access token has been revoked'}
+        except:
+            return {'message': 'Something went wrong'}, 500
 
 
 class UserLogoutRefresh(Resource):
+    @jwt_required(refresh=True)
     def post(self):
-        return {'message': 'User logout'}
+        jti = get_jwt()['jti']
+        print(get_jwt())
+
+        try:
+            revoked_token = RevokedTokenModel(jti=jti)
+            revoked_token.add()
+            return {'message': 'Refresh token has been revoked'}
+        except:
+            return {'message': 'Something went wrong'}, 500
 
 
+# 测试登录登出接口
 class SecretResource(Resource):
     @jwt_required()
     def get(self):
         current_user = get_jwt_identity()
+
+        jti = get_jwt()['jti']
+        if RevokedTokenModel.is_jti_blacklisted(jti):
+            return {'message': '你没有权限访问'}, 401
         return {
             'message': 'secret message',
             'current_user': current_user

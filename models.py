@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import text
 from werkzeug.security import generate_password_hash, check_password_hash
 from enum import Enum
 
@@ -50,21 +51,75 @@ class Dishes(db.Model):
             'price': x.price
         }
 
-    @staticmethod
-    def return_all():
-        return {'dishes': list(map(lambda x: Dishes.to_json(x), Dishes.query.all()))}
+    @classmethod
+    def return_all(cls):
+        return {'dishes': list(map(lambda x: cls.to_json(x), cls.query.all()))}
+
+
+class GenderEnum(Enum):
+    MALE = '男'
+    FEMALE = '女'
 
 
 class Employee(db.Model):
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     emp_id = db.Column(db.String(10), unique=True, nullable=False)
     name = db.Column(db.String(50), nullable=False)
-    gender = db.Column(db.String(10), nullable=False)
+    gender = db.Column(db.String(20), nullable=False, server_default=GenderEnum.MALE.value)
     age = db.Column(db.Integer, nullable=False)
     salary = db.Column(db.Float, nullable=False)
+
+    @staticmethod
+    def to_json(x: 'Employee' = None):
+        return {
+            'emp_id': x.emp_id,
+            'name': x.name,
+            'gender': x.gender,
+            'age': x.age,
+            'salary': x.salary
+        }
+
+    @classmethod
+    def return_all(cls):
+        return {'employees': list(map(lambda x: cls.to_json(x), cls.query.all()))}
 
 
 class DiscountRules(db.Model):
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     spending_amount = db.Column(db.Float, nullable=False)
     discount_percentage = db.Column(db.Float, nullable=False)
+
+
+class RevokedTokenModel(db.Model):
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    jti = db.Column(db.String(128))
+
+    def add(self):
+        db.session.add(self)
+        db.session.commit()
+
+    @classmethod
+    def is_jti_blacklisted(cls, jti):
+        query = cls.query.filter_by(jti=jti).first()
+        return bool(query)
+
+
+class Order(db.Model):
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    customer_id = db.Column(db.Integer, db.ForeignKey('user_model.id'), nullable=False)
+    order_id = db.Column(db.DateTime, nullable=False)
+
+
+class MenuOrder(db.Model):
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    dish_id = db.Column(db.Integer, db.ForeignKey('dishes.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+
+
+class BillingRecord(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    total_amount = db.Column(db.Float, nullable=False)
+    discounted_amount = db.Column(db.Float, nullable=False)
+    billing_time = db.Column(db.DateTime, nullable=False)
