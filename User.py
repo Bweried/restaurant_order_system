@@ -1,6 +1,7 @@
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
-from models import db, UserModel, AdminModel, RevokedTokenModel
+from models import db, UserModel, AdminModel, RevokedTokenModel, GenderEnum
+import re
 
 admin_parse = reqparse.RequestParser()
 admin_parse.add_argument('username', help='This field cannot be blank', required=True)
@@ -10,6 +11,9 @@ user_parse = reqparse.RequestParser()
 user_parse.add_argument('username', help='This field cannot be blank', required=True)
 user_parse.add_argument('password', help='This field cannot be blank', required=True)
 user_parse.add_argument('name', help='This field cannot be blank', required=True)
+user_parse.add_argument('gender', help='This field cannot be blank', required=True)
+user_parse.add_argument('age', type=int, help='This field cannot be blank', required=True)
+user_parse.add_argument('tel', help='This field cannot be blank', required=True)
 
 
 class AdminRegistration(Resource):
@@ -89,6 +93,15 @@ class UserRegistration(Resource):
         username = data['username']
         password = data['password']
         name = data['name']
+        gender = data['gender']
+        if gender not in [category.value for category in GenderEnum]:
+            return {'message': str(gender) + '类不存在'}
+        age = data['age']
+        tel = data['tel']
+
+        # 验证手机号格式是否正确
+        if not re.match(r'^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\d{8}$', tel):
+            return {'message': '手机号格式不正确'}
 
         if not (1 <= len(username) <= 20):
             return {'message': 'Invalid username length'}, 400
@@ -98,14 +111,19 @@ class UserRegistration(Resource):
 
         # 检查数据库中是否存在相同的用户名
         existing_user = UserModel.query.filter_by(username=username).first()
+        existing_admin_user = AdminModel.query.filter_by(username=username).first()
 
-        if existing_user:
+        # 确保不和管理员用户名重复
+        if existing_user or existing_admin_user:
             return {'message': '用户名已存在'}, 400
         else:
             # 创建新用户并保存到数据库中
             new_user = UserModel(username=username)
             new_user.set_password(password)
             new_user.name = name
+            new_user.gender = gender
+            new_user.age = age
+            new_user.tel = tel
             db.session.add(new_user)
             db.session.commit()
             return {'message': '用户注册成功'}, 201

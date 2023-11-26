@@ -6,6 +6,17 @@ from enum import Enum
 db = SQLAlchemy()
 
 
+class DishCategory(Enum):
+    APPETIZER = 'Appetizer'
+    MAIN_COURSE = 'Main Course'
+    DESSERT = 'Dessert'
+
+
+class GenderEnum(Enum):
+    MALE = '男'
+    FEMALE = '女'
+
+
 class AdminModel(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
@@ -23,18 +34,15 @@ class UserModel(db.Model):
     username = db.Column(db.String(20), unique=True, nullable=False)
     password_hash = db.Column(db.String(255))  # 密码散列值
     name = db.Column(db.String(20), nullable=False)
+    gender = db.Column(db.String(20), nullable=False, server_default=GenderEnum.MALE.value)
+    age = db.Column(db.Integer, nullable=False)
+    tel = db.Column(db.String(20), nullable=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-
-
-class DishCategory(Enum):
-    APPETIZER = 'Appetizer'
-    MAIN_COURSE = 'Main Course'
-    DESSERT = 'Dessert'
 
 
 class Dishes(db.Model):
@@ -55,11 +63,6 @@ class Dishes(db.Model):
     @classmethod
     def return_all(cls):
         return {'dishes': list(map(lambda x: cls.to_json(x), cls.query.all()))}
-
-
-class GenderEnum(Enum):
-    MALE = '男'
-    FEMALE = '女'
 
 
 class Employee(db.Model):
@@ -108,7 +111,7 @@ class RevokedTokenModel(db.Model):
 
 class Order(db.Model):
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    customer_id = db.Column(db.Integer, db.ForeignKey('user_model.id'), nullable=False)
+    customer_id = db.Column(db.Integer, db.ForeignKey('user_model.id', ondelete='CASCADE'), nullable=False)
     order_time = db.Column(db.DateTime, nullable=False)
 
     @staticmethod
@@ -126,14 +129,14 @@ class Order(db.Model):
 
 class MenuOrder(db.Model):
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
-    dish_id = db.Column(db.Integer, db.ForeignKey('dishes.id'), nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id', ondelete='CASCADE'), nullable=False)
+    dish_id = db.Column(db.Integer, db.ForeignKey('dishes.id', ondelete='CASCADE'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
 
 
 class BillingRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id', ondelete='CASCADE'), nullable=False)
     total_amount = db.Column(db.Float, nullable=False)
     discounted_amount = db.Column(db.Float, nullable=False)
     billing_time = db.Column(db.DateTime, nullable=False)
