@@ -8,6 +8,7 @@ from datetime import timedelta
 from User import *
 from Dish import DishList
 from employee import EmpList
+from order import OrderList
 from models import *
 
 app = Flask(__name__)
@@ -47,6 +48,10 @@ api.add_resource(DishList, '/dish/<int:d_id>', endpoint='dish_list')
 # Employee
 api.add_resource(EmpList, '/emp/')
 api.add_resource(EmpList, '/emp/<int:e_id>', endpoint='emp_list')
+
+# Order
+api.add_resource(OrderList, '/order/')
+api.add_resource(OrderList, '/order/<int:o_id>', endpoint='order_list')
 
 if __name__ == '__main__':
     app.run(debug=True)

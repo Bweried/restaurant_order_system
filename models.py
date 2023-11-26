@@ -46,6 +46,7 @@ class Dishes(db.Model):
     @staticmethod
     def to_json(x: 'Dishes' = None):
         return {
+            'id': x.id,
             'name': x.name,
             'class': x.D_class,
             'price': x.price
@@ -72,6 +73,7 @@ class Employee(db.Model):
     @staticmethod
     def to_json(x: 'Employee' = None):
         return {
+            'id': x.id,
             'emp_id': x.emp_id,
             'name': x.name,
             'gender': x.gender,
@@ -107,7 +109,19 @@ class RevokedTokenModel(db.Model):
 class Order(db.Model):
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('user_model.id'), nullable=False)
-    order_id = db.Column(db.DateTime, nullable=False)
+    order_time = db.Column(db.DateTime, nullable=False)
+
+    @staticmethod
+    def to_json(x: 'Order' = None):
+        return {
+            'id': x.id,
+            'customer_id': x.customer_id,
+            'order_time': x.order_time.isoformat()
+        }
+
+    @classmethod
+    def return_all(cls):
+        return {'orders': list(map(lambda x: cls.to_json(x), cls.query.all()))}
 
 
 class MenuOrder(db.Model):
