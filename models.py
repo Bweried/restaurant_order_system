@@ -44,6 +44,21 @@ class UserModel(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    @staticmethod
+    def to_json(x: 'UserModel' = None):
+        return {
+            'id': x.id,
+            'username': x.username,
+            'name': x.name,
+            'gender': x.gender,
+            'age': x.age,
+            'tel': x.tel
+        }
+
+    @classmethod
+    def return_all(cls):
+        return {'user': list(map(lambda x: cls.to_json(x), cls.query.all()))}
+
 
 class Dishes(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -89,12 +104,6 @@ class Employee(db.Model):
         return {'employees': list(map(lambda x: cls.to_json(x), cls.query.all()))}
 
 
-class DiscountRules(db.Model):
-    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    spending_amount = db.Column(db.Float, nullable=False)
-    discount_percentage = db.Column(db.Float, nullable=False)
-
-
 class RevokedTokenModel(db.Model):
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     jti = db.Column(db.String(128))
@@ -138,5 +147,11 @@ class BillingRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     order_id = db.Column(db.Integer, db.ForeignKey('order.id', ondelete='CASCADE'), nullable=False)
     total_amount = db.Column(db.Float, nullable=False)
-    discounted_amount = db.Column(db.Float, nullable=False)
+    # discounted_amount = db.Column(db.Float, nullable=False)
     billing_time = db.Column(db.DateTime, nullable=False)
+
+
+# class DiscountRules(db.Model):
+#     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+#     spending_amount = db.Column(db.Float, nullable=False)
+#     discount_percentage = db.Column(db.Float, nullable=False)

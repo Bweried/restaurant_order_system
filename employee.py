@@ -1,5 +1,6 @@
 from flask_restful import Resource, reqparse
 from models import db, Employee, GenderEnum
+from decorators import admin_required
 
 emp_parse = reqparse.RequestParser()
 emp_parse.add_argument('emp_id', help='This field cannot be blank', required=True, location='form')
@@ -10,6 +11,7 @@ emp_parse.add_argument('salary', type=float, help='This field cannot be blank', 
 
 
 class EmpList(Resource):
+    @admin_required
     def get(self, e_id: int | None = None):
         if e_id is not None:
             emp = Employee.query.get(e_id)
@@ -19,6 +21,7 @@ class EmpList(Resource):
                 return {'message': 'Employee not found'}, 404
         return Employee.return_all()
 
+    @admin_required
     def post(self):
         data = emp_parse.parse_args()
         gender = data['gender']
@@ -41,6 +44,7 @@ class EmpList(Resource):
             db.session.commit()
             return {'message': '添加成功'}, 201
 
+    @admin_required
     def put(self, e_id: int):
         emp = Employee.query.get(e_id)
 
@@ -60,6 +64,7 @@ class EmpList(Resource):
 
         return {'message': '员工信息更新成功'}, 200
 
+    @admin_required
     def delete(self, e_id: int):
         emp = Employee.query.get(e_id)
 

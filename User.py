@@ -2,6 +2,7 @@ from flask_restful import Resource, reqparse
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 from models import db, UserModel, AdminModel, RevokedTokenModel, GenderEnum
 import re
+from decorators import jwt_required_with_blacklist, admin_required
 
 admin_parse = reqparse.RequestParser()
 admin_parse.add_argument('username', help='This field cannot be blank', required=True, location='form')
@@ -66,7 +67,7 @@ class AdminLogin(Resource):
 class AdminAccessLogout(Resource):
     @jwt_required()
     def post(self):
-        jti = get_jwt()
+        jti = get_jwt()['jti']
         try:
             revoked_token = RevokedTokenModel(jti=jti)
             revoked_token.add()
@@ -78,7 +79,7 @@ class AdminAccessLogout(Resource):
 class AdminRefreshLogout(Resource):
     @jwt_required(refresh=True)
     def post(self):
-        jti = get_jwt()
+        jti = get_jwt()['jti']
         try:
             revoked_token = RevokedTokenModel(jti=jti)
             revoked_token.add()
@@ -177,6 +178,43 @@ class UserLogoutRefresh(Resource):
             return {'message': 'Refresh token has been revoked'}
         except:
             return {'message': 'Something went wrong'}, 500
+
+
+class UserProfile(Resource):
+    @jwt_required_with_blacklist
+    def get(self):
+        current_username = get_jwt_identity()
+        current_user = UserModel.query.filter_by(username=current_username).first()
+        return UserModel.to_json(current_user)
+
+    @jwt_required_with_blacklist
+    def put(self):
+        current_username = get_jwt_identity()
+        current_user: 'UserModel' = UserModel.query.filter_by(username=current_username).first()
+
+        data = user_parse.parse_args()
+
+        # 验证手机号格式是否正确
+        if not re.match(r'^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\d{8}$', data['tel']):
+            return {'message': '手机号格式不正确'}
+
+        current_user.name = data['name']
+        current_user.gender = data['gender']
+        current_user.age = data['age']
+        current_user.tel = data['tel']
+
+        db.session.commit()
+
+        # 生成新的JWT并返回给客户端
+        new_access_token = create_access_token(identity=current_user.username)
+
+        return {'message': '用户信息更新完成', 'access_token': new_access_token}, 200
+
+
+class AllUserProfile(Resource):
+    @admin_required
+    def get(self):
+        return UserModel.return_all()
 
 
 # 测试登录登出接口

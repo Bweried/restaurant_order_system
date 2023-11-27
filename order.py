@@ -1,8 +1,8 @@
 from flask_restful import Resource, reqparse, request
 from models import db, Order, MenuOrder, BillingRecord, UserModel, AdminModel, Dishes
-from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
+from flask_jwt_extended import get_jwt, get_jwt_identity
 from datetime import datetime
-from decorators import admin_required
+from decorators import admin_required, jwt_required_with_blacklist
 
 
 # 不会设置。手动校验数据
@@ -15,7 +15,7 @@ class OrderList(Resource):
     def get(self):
         return Order.return_all()
 
-    @jwt_required()
+    @jwt_required_with_blacklist
     def post(self):
         current_username = get_jwt_identity()
         current_user: 'UserModel' = UserModel.query.filter_by(username=current_username).first()
@@ -35,6 +35,9 @@ class OrderList(Resource):
             db.session.add(new_order)
             db.session.commit()
 
+            # 计算订单总金额
+            total_amount = 0.0
+
             # 循环遍历dish_details，为每个菜品创建相关的MenuOrder
             for dish_detail in dish_details:
                 # 校验dish_id和quantity是否存在且为整数类型
@@ -47,7 +50,8 @@ class OrderList(Resource):
                         return {'message': 'dish_id and quantity must be integers'}, 400
 
                     # 查询是否有该菜品
-                    if not Dishes.query.filter_by(id=dish_id).first():
+                    dish = Dishes.query.filter_by(id=dish_id).first()
+                    if not dish:
                         return {'message': "该菜品不存在"}, 400
 
                     menu_order = MenuOrder(
@@ -56,13 +60,25 @@ class OrderList(Resource):
                         quantity=quantity
                     )
                     db.session.add(menu_order)
+
+                    # 账单金额
+                    total_amount += dish.price * quantity
+
                 else:
                     # 如果dish_id或quantity不存在，可以选择返回相应的错误消息
                     return {'message': 'dish_id or quantity not found in dish_details'}, 400
 
+            # 创建订单记录
+            billing_record = BillingRecord(
+                order_id=new_order.id,
+                total_amount=total_amount,
+                billing_time=time
+            )
+            db.session.add(billing_record)
+
             db.session.commit()
 
-            return {'message': '订单创建成功'}, 201
+            return {'message': '订单创建成功', 'total_amount': total_amount}, 201
 
         # 如果 dish_details 不存在，返回相应的消息
         return {'message': 'dish_details not found'}, 400

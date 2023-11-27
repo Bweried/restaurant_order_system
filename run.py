@@ -41,6 +41,10 @@ api.add_resource(UserLogoutRefresh, '/logout')
 api.add_resource(TokenRefresh, '/token/refresh')
 api.add_resource(SecretResource, '/secret')
 
+# UserProfile
+api.add_resource(UserProfile, '/user/profile')
+api.add_resource(AllUserProfile, '/users/profile')
+
 # Dishes
 api.add_resource(DishList, '/dish/')
 api.add_resource(DishList, '/dish/<int:d_id>', endpoint='dish_list')

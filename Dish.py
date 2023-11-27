@@ -1,5 +1,6 @@
 from flask_restful import Resource, reqparse
 from models import db, Dishes, DishCategory
+from decorators import admin_required
 
 dish_parse = reqparse.RequestParser()
 dish_parse.add_argument('name', help='This field cannot be blank', required=True, location='form')
@@ -8,6 +9,7 @@ dish_parse.add_argument('price', help='This field cannot be blank', required=Tru
 
 
 class DishList(Resource):
+    @admin_required
     def get(self, d_id: int | None = None):
         if d_id is not None:
             dish = Dishes.query.get(d_id)
@@ -17,6 +19,7 @@ class DishList(Resource):
                 return {'message': 'Dish not fount'}, 404
         return Dishes.return_all()
 
+    @admin_required
     def post(self):
         data = dish_parse.parse_args()
         D_class = data['class']
@@ -38,6 +41,7 @@ class DishList(Resource):
             db.session.commit()
             return {'message': '添加成功'}, 201
 
+    @admin_required
     def put(self, d_id: int):
         dish = Dishes.query.get(d_id)
 
@@ -55,6 +59,7 @@ class DishList(Resource):
 
         return {'message': '菜品信息更新成功'}, 200
 
+    @admin_required
     def delete(self, d_id: int):
         dish = Dishes.query.get(d_id)
 
