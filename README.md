@@ -7,6 +7,11 @@ Mysql库：restaurant_order_system
 环境变量`FLASK_APP`:  
     $env:FLASK_APP="run.py"
 
+数据库创建：  
+flask db init  
+flask db migrate  
+flask db upgrade  
+
 数据库迁移：  
 flask db migrate  
 flask db upgrade  
