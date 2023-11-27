@@ -2,11 +2,11 @@ from flask_restful import Resource, reqparse
 from models import db, Employee, GenderEnum
 
 emp_parse = reqparse.RequestParser()
-emp_parse.add_argument('emp_id', help='This field cannot be blank', required=True)
-emp_parse.add_argument('name', help='This field cannot be blank', required=True)
-emp_parse.add_argument('gender', help='This field cannot be blank', required=True)
-emp_parse.add_argument('age', type=int, help='This field cannot be blank', required=True)
-emp_parse.add_argument('salary', type=float, help='This field cannot be blank', required=True)
+emp_parse.add_argument('emp_id', help='This field cannot be blank', required=True, location='form')
+emp_parse.add_argument('name', help='This field cannot be blank', required=True, location='form')
+emp_parse.add_argument('gender', help='This field cannot be blank', required=True, location='form')
+emp_parse.add_argument('age', type=int, help='This field cannot be blank', required=True, location='form')
+emp_parse.add_argument('salary', type=float, help='This field cannot be blank', required=True, location='form')
 
 
 class EmpList(Resource):

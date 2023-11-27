@@ -2,9 +2,9 @@ from flask_restful import Resource, reqparse
 from models import db, Dishes, DishCategory
 
 dish_parse = reqparse.RequestParser()
-dish_parse.add_argument('name', help='This field cannot be blank', required=True)
-dish_parse.add_argument('class', help='This field cannot be blank', required=True)
-dish_parse.add_argument('price', help='This field cannot be blank', required=True)
+dish_parse.add_argument('name', help='This field cannot be blank', required=True, location='form')
+dish_parse.add_argument('class', help='This field cannot be blank', required=True, location='form')
+dish_parse.add_argument('price', help='This field cannot be blank', required=True, location='form')
 
 
 class DishList(Resource):

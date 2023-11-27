@@ -4,16 +4,16 @@ from models import db, UserModel, AdminModel, RevokedTokenModel, GenderEnum
 import re
 
 admin_parse = reqparse.RequestParser()
-admin_parse.add_argument('username', help='This field cannot be blank', required=True)
-admin_parse.add_argument('password', help='This field cannot be blank', required=True)
+admin_parse.add_argument('username', help='This field cannot be blank', required=True, location='form')
+admin_parse.add_argument('password', help='This field cannot be blank', required=True, location='form')
 
 user_parse = reqparse.RequestParser()
-user_parse.add_argument('username', help='This field cannot be blank', required=True)
-user_parse.add_argument('password', help='This field cannot be blank', required=True)
-user_parse.add_argument('name', help='This field cannot be blank', required=True)
-user_parse.add_argument('gender', help='This field cannot be blank', required=True)
-user_parse.add_argument('age', type=int, help='This field cannot be blank', required=True)
-user_parse.add_argument('tel', help='This field cannot be blank', required=True)
+user_parse.add_argument('username', help='This field cannot be blank', required=True, location='form')
+user_parse.add_argument('password', help='This field cannot be blank', required=True, location='form')
+user_parse.add_argument('name', help='This field cannot be blank', required=True, location='form')
+user_parse.add_argument('gender', help='This field cannot be blank', required=True, location='form')
+user_parse.add_argument('age', type=int, help='This field cannot be blank', required=True, location='form')
+user_parse.add_argument('tel', help='This field cannot be blank', required=True, location='form')
 
 
 class AdminRegistration(Resource):
@@ -25,8 +25,9 @@ class AdminRegistration(Resource):
 
         # 检查数据库中是否存在相同的用户名
         existing_user = AdminModel.query.filter_by(username=username).first()
+        existing_normal_user = UserModel.query.filter_by(username=username).first()
 
-        if existing_user:
+        if existing_user or existing_normal_user:
             return {'message': '用户名已存在'}, 400
 
         # 创建新用户并保存到数据库中

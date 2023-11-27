@@ -1,8 +1,13 @@
-from flask_restful import Resource, reqparse
-from models import db, Order, MenuOrder, BillingRecord, UserModel, AdminModel
+from flask_restful import Resource, reqparse, request
+from models import db, Order, MenuOrder, BillingRecord, UserModel, AdminModel, Dishes
 from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 from datetime import datetime
 from decorators import admin_required
+
+
+# 不会设置。手动校验数据
+# dish_parse = reqparse.RequestParser()
+# dish_parse.add_argument('dish_details', type=list, help='dish_details cannot be blank', required=True)
 
 
 class OrderList(Resource):
@@ -16,32 +21,58 @@ class OrderList(Resource):
         current_user: 'UserModel' = UserModel.query.filter_by(username=current_username).first()
         time = datetime.now()
 
-        # 创建新订单
-        new_order = Order(
-            customer_id=current_user.id,
-            order_time=time
-        )
-        db.session.add(new_order)
-        db.session.commit()
-        return {'message': '订单创建成功'}, 201
+        # 从请求数据中获取 dish_details
+        data = request.get_json()
 
-    @jwt_required()
+        # 检查是否存在 dish_details
+        if 'dish_details' in data:
+            dish_details = data['dish_details']
+            # 创建新订单
+            new_order = Order(
+                customer_id=current_user.id,
+                order_time=time
+            )
+            db.session.add(new_order)
+            db.session.commit()
+
+            # 循环遍历dish_details，为每个菜品创建相关的MenuOrder
+            for dish_detail in dish_details:
+                # 校验dish_id和quantity是否存在且为整数类型
+                if 'dish_id' in dish_detail and 'quantity' in dish_detail:
+                    dish_id = dish_detail['dish_id']
+                    quantity = dish_detail['quantity']
+
+                    # 确保dish_id和quantity是整数类型
+                    if not isinstance(dish_id, int) or not isinstance(quantity, int):
+                        return {'message': 'dish_id and quantity must be integers'}, 400
+
+                    # 查询是否有该菜品
+                    if not Dishes.query.filter_by(id=dish_id).first():
+                        return {'message': "该菜品不存在"}, 400
+
+                    menu_order = MenuOrder(
+                        order_id=new_order.id,
+                        dish_id=dish_id,
+                        quantity=quantity
+                    )
+                    db.session.add(menu_order)
+                else:
+                    # 如果dish_id或quantity不存在，可以选择返回相应的错误消息
+                    return {'message': 'dish_id or quantity not found in dish_details'}, 400
+
+            db.session.commit()
+
+            return {'message': '订单创建成功'}, 201
+
+        # 如果 dish_details 不存在，返回相应的消息
+        return {'message': 'dish_details not found'}, 400
+
+    @admin_required
     def delete(self, o_id: int):
         order: 'Order' = Order.query.get(o_id)
 
         if not order:
             return {'message': '该订单不存在'}, 400
-
-        current_username = get_jwt_identity()
-        current_user = UserModel.query.filter_by(username=current_username).first()
-
-        # 调试输出
-        print(f"Current User ID: {current_user.id}, Order Customer ID: {order.customer_id}")
-
-        # 判断是否为管理员 & 判断是否为用户本人
-        if current_username not in [admin.username for admin in
-                                    AdminModel.query.all()] and current_user.id != order.customer_id:
-            return {'message': '你没有权限删除'}, 401
 
         db.session.delete(order)
         db.session.commit()
