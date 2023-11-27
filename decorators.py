@@ -8,10 +8,8 @@ def jwt_required_with_blacklist(fn):
     @wraps(fn)
     @jwt_required()
     def wrapper(*args, **kwargs):
-        # Check if JWT is present and valid
         jwt_required()(fn)(*args, **kwargs)
 
-        # Additional check for token blacklisting
         jti = get_jwt()['jti']
         if RevokedTokenModel.is_jti_blacklisted(jti):
             return {'message': '你没有权限访问'}, 401

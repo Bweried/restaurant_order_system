@@ -205,10 +205,7 @@ class UserProfile(Resource):
 
         db.session.commit()
 
-        # 生成新的JWT并返回给客户端
-        new_access_token = create_access_token(identity=current_user.username)
-
-        return {'message': '用户信息更新完成', 'access_token': new_access_token}, 200
+        return {'message': '用户信息更新完成'}, 200
 
 
 class AllUserProfile(Resource):

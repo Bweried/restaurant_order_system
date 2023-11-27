@@ -65,7 +65,7 @@ class OrderList(Resource):
                     total_amount += dish.price * quantity
 
                 else:
-                    # 如果dish_id或quantity不存在，可以选择返回相应的错误消息
+                    # 如果dish_id或quantity不存在，返回相应的错误消息
                     return {'message': 'dish_id or quantity not found in dish_details'}, 400
 
             # 创建订单记录
