@@ -9,7 +9,7 @@ from datetime import timedelta
 from User import *
 from Dish import DishList
 from employee import EmpList
-from order import OrderList
+from order import OrderList, POrder
 from models import *
 
 app = Flask(__name__)
@@ -17,7 +17,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 api = Api(app)
 
 # 连接 MySQL
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost/restaurant_order_system'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:a441523@localhost/restaurant_order_system'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 禁用追踪修改
 app.config['SECRET_KEY'] = secrets.token_hex(16)
 app.config['JWT_SECRET_KEY'] = secrets.token_hex(16)
@@ -60,6 +60,9 @@ api.add_resource(EmpList, '/emp/<int:e_id>', endpoint='emp_list')
 # Order
 api.add_resource(OrderList, '/order/')
 api.add_resource(OrderList, '/order/<int:o_id>', endpoint='order_list')
+
+# pOrder
+api.add_resource(POrder, '/porder/')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

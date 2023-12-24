@@ -55,7 +55,7 @@ class AdminLogin(Resource):
         current_user: 'AdminModel' = AdminModel.query.filter_by(username=data['username']).first()
 
         if not current_user:
-            return {'message': '用户不存在'}, 400
+            return {'message': '用户不存在', 'status': 400}, 400
 
         if AdminModel.check_password(current_user, data['password']):
             access_token = create_access_token(identity=data['username'])
@@ -63,10 +63,11 @@ class AdminLogin(Resource):
             return {
                 'message': f'{current_user.username}登录成功',
                 'access_token': access_token,
-                'refresh_token': refresh_token
+                'refresh_token': refresh_token,
+                'status': 200
             }
         else:
-            return {'message': '密码错误'}
+            return {'message': '密码错误', 'status': 400}, 400
 
 
 class AdminAccessLogout(Resource):

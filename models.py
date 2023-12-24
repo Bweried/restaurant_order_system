@@ -25,8 +25,11 @@ class AdminModel(db.Model):
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
+    # def check_password(self, password):
+    #     return check_password_hash(self.password_hash, password)
+
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        return self.password_hash == password
 
 
 class UserModel(db.Model):
@@ -57,7 +60,7 @@ class UserModel(db.Model):
 
     @classmethod
     def return_all(cls):
-        return {'user': list(map(lambda x: cls.to_json(x), cls.query.all()))}
+        return {'status': 200, 'tabledata': list(map(lambda x: cls.to_json(x), cls.query.all()))}
 
 
 class Dishes(db.Model):
@@ -71,13 +74,13 @@ class Dishes(db.Model):
         return {
             'id': x.id,
             'name': x.name,
-            'class': x.D_class,
+            'D_class': x.D_class,
             'price': x.price
         }
 
     @classmethod
     def return_all(cls):
-        return {'dishes': list(map(lambda x: cls.to_json(x), cls.query.all()))}
+        return {'status': 200, 'tabledata': list(map(lambda x: cls.to_json(x), cls.query.all()))}
 
 
 class Employee(db.Model):
@@ -101,7 +104,7 @@ class Employee(db.Model):
 
     @classmethod
     def return_all(cls):
-        return {'employees': list(map(lambda x: cls.to_json(x), cls.query.all()))}
+        return {'status':200, 'tabledata': list(map(lambda x: cls.to_json(x), cls.query.all()))}
 
 
 class RevokedTokenModel(db.Model):
@@ -128,12 +131,12 @@ class Order(db.Model):
         return {
             'id': x.id,
             'customer_id': x.customer_id,
-            'order_time': x.order_time.isoformat()
+            'order_time': x.order_time.strftime("%Y-%m-%d %H:%M:%S")
         }
 
     @classmethod
     def return_all(cls):
-        return {'orders': list(map(lambda x: cls.to_json(x), cls.query.all()))}
+        return {'status': 200, 'tabledata': list(map(lambda x: cls.to_json(x), cls.query.all()))}
 
 
 class MenuOrder(db.Model):

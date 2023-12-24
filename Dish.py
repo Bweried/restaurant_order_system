@@ -1,6 +1,6 @@
 from flask_restful import Resource, reqparse
 from models import db, Dishes, DishCategory
-from decorators import admin_required
+from decorators import admin_required, jwt_required_with_blacklist
 
 dish_parse = reqparse.RequestParser()
 dish_parse.add_argument('name', help='This field cannot be blank', required=True, location='form')
@@ -9,7 +9,7 @@ dish_parse.add_argument('price', help='This field cannot be blank', required=Tru
 
 
 class DishList(Resource):
-    @admin_required
+    @jwt_required_with_blacklist
     def get(self, d_id: int | None = None):
         if d_id is not None:
             dish = Dishes.query.get(d_id)

@@ -93,3 +93,18 @@ class OrderList(Resource):
         db.session.delete(order)
         db.session.commit()
         return {'message': '删除成功'}, 200
+
+
+# 个人订单管理
+class POrder(Resource):
+    @jwt_required_with_blacklist
+    def get(self):
+        current_username = get_jwt_identity()
+        current_user = UserModel.query.filter_by(username=current_username).first()
+
+        if current_user:
+            orders = Order.query.filter_by(customer_id=current_user.id).all()
+            orders_data = [Order.to_json(order) for order in orders]
+            return {'status': 200, 'tabledata': orders_data}
+
+        return {'status': 400, 'message': '用户不存在'}, 404
