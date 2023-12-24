@@ -1,11 +1,12 @@
+from flask import jsonify, request, Response
 from flask_restful import Resource, reqparse
 from models import db, Dishes, DishCategory
 from decorators import admin_required, jwt_required_with_blacklist
 
 dish_parse = reqparse.RequestParser()
-dish_parse.add_argument('name', help='This field cannot be blank', required=True, location='form')
-dish_parse.add_argument('class', help='This field cannot be blank', required=True, location='form')
-dish_parse.add_argument('price', help='This field cannot be blank', required=True, location='form')
+dish_parse.add_argument('name', help='This field cannot be blank', required=True)
+dish_parse.add_argument('class', help='This field cannot be blank', required=True)
+dish_parse.add_argument('price', help='This field cannot be blank', required=True)
 
 
 class DishList(Resource):
@@ -39,7 +40,7 @@ class DishList(Resource):
             )
             db.session.add(new_dish)
             db.session.commit()
-            return {'message': '添加成功'}, 201
+            return {'status': 200, 'message': '添加成功'}, 200
 
     @admin_required
     def put(self, d_id: int):
@@ -64,9 +65,25 @@ class DishList(Resource):
         dish = Dishes.query.get(d_id)
 
         if not dish:
-            return {'message': '菜品不存在'}, 400
+            return {'status': 400, 'message': '菜品不存在'}, 400
 
         db.session.delete(dish)
         db.session.commit()
 
-        return {'message': '删除成功'}
+        return {'status': 200, 'message': '删除成功'}
+
+    # @admin_required
+    # def options(self):
+    #     # 处理 OPTIONS 请求，返回带有 CORS 头的空响应
+    #     response = Response()
+    #     response.headers.add('Access-Control-Allow-Origin', '*')
+    #     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    #     response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+    #     return response, 200
+
+
+class DishCategoryResource(Resource):
+    @admin_required
+    def get(self):
+        categories = [category.value for category in DishCategory]
+        return jsonify(status=200, categories=categories)

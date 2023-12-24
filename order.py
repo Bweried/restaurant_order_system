@@ -78,7 +78,7 @@ class OrderList(Resource):
 
             db.session.commit()
 
-            return {'message': '订单创建成功', 'total_amount': total_amount}, 201
+            return {'status': 201, 'message': '订单创建成功', 'total_amount': total_amount}, 201
 
         # 如果 dish_details 不存在，返回相应的消息
         return {'message': 'dish_details not found'}, 400

@@ -7,18 +7,20 @@ import secrets
 from datetime import timedelta
 
 from User import *
-from Dish import DishList
+from Dish import DishList, DishCategoryResource
 from employee import EmpList
 from order import OrderList, POrder
 from models import *
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
 api = Api(app)
+# CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
 
 # 连接 MySQL
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:a441523@localhost/restaurant_order_system'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 禁用追踪修改
+app.config['SESSION_COOKIE_SECURE'] = False
 app.config['SECRET_KEY'] = secrets.token_hex(16)
 app.config['JWT_SECRET_KEY'] = secrets.token_hex(16)
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
@@ -50,19 +52,22 @@ api.add_resource(UserProfile, '/user/profile')
 api.add_resource(AllUserProfile, '/users/profile')
 
 # Dishes
-api.add_resource(DishList, '/dish/')
+api.add_resource(DishList, '/dish')
 api.add_resource(DishList, '/dish/<int:d_id>', endpoint='dish_list')
 
 # Employee
-api.add_resource(EmpList, '/emp/')
+api.add_resource(EmpList, '/emp')
 api.add_resource(EmpList, '/emp/<int:e_id>', endpoint='emp_list')
 
 # Order
-api.add_resource(OrderList, '/order/')
+api.add_resource(OrderList, '/order')
 api.add_resource(OrderList, '/order/<int:o_id>', endpoint='order_list')
 
 # pOrder
-api.add_resource(POrder, '/porder/')
+api.add_resource(POrder, '/porder')
+
+# 枚举类
+api.add_resource(DishCategoryResource, '/dish_categories')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
