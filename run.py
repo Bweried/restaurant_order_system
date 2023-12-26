@@ -13,7 +13,7 @@ from order import OrderList, POrder
 from models import *
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}, max_age=2592000)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True, max_age=2592000)
 api = Api(app)
 
 # 连接 MySQL

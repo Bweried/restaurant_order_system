@@ -40,14 +40,14 @@ class DishList(Resource):
             )
             db.session.add(new_dish)
             db.session.commit()
-            return {'message': '添加成功', 'status': 200}, 201
+            return {'message': '添加成功', 'status': 200}, 200
 
     @admin_required
     def put(self, d_id: int):
         dish = Dishes.query.get(d_id)
 
         if not dish:
-            return {'message': '菜品不存在'}, 400
+            return {'message': '菜品不存在', 'status': 400}, 400
 
         data = dish_parse.parse_args()
 
@@ -58,19 +58,21 @@ class DishList(Resource):
 
         db.session.commit()
 
-        return {'message': '菜品信息更新成功'}, 200
+        return {'message': '菜品信息更新成功', 'status': 200}, 200
 
     @admin_required
     def delete(self, d_id: int):
         dish = Dishes.query.get(d_id)
 
         if not dish:
-            return {'message': '菜品不存在'}, 400
+            return {'message': '菜品不存在', 'status': 400}, 400
 
         db.session.delete(dish)
         db.session.commit()
 
-        return {'message': '删除成功'}
+        return {'message': '删除成功', 'status': 200}
+
+
 
 
 class DishCategoryResource(Resource):
