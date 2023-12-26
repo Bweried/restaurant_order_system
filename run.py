@@ -9,11 +9,13 @@ from datetime import timedelta
 from User import *
 from Dish import DishList, DishCategoryResource
 from employee import EmpList
-from order import OrderList, POrder
+from order import OrderList, PUnFinishedOrders, PFinishedOrders, MOrder, AllUnfinishedOrders, AllCompletedOrder, \
+    ConfirmOrder
 from models import *
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True, max_age=2592000)
+CORS(app, resources={r"/*": {"origins": "*"}}, methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+     supports_credentials=True, max_age=2592000)
 api = Api(app)
 
 # 连接 MySQL
@@ -51,19 +53,25 @@ api.add_resource(UserProfile, '/user/profile')
 api.add_resource(AllUserProfile, '/users/profile')
 
 # Dishes
-api.add_resource(DishList, '/dish/')
-api.add_resource(DishList, '/dish/<int:d_id>', endpoint='dish_list')
+api.add_resource(DishList, '/dish/', '/dish/<int:d_id>', endpoint='dish_list')
 
 # Employee
-api.add_resource(EmpList, '/emp/')
-api.add_resource(EmpList, '/emp/<int:e_id>', endpoint='emp_list')
+api.add_resource(EmpList, '/emp', '/emp/<int:e_id>', endpoint='emp_list')
 
 # Manage_Order
-api.add_resource(OrderList, '/order/')
-api.add_resource(OrderList, '/order/<int:o_id>', endpoint='order_list')
+api.add_resource(OrderList, '/order/', '/order/<int:o_id>', endpoint='order_list')
 
 # User_Order
-api.add_resource(POrder, '/porder/')
+api.add_resource(PUnFinishedOrders, '/unfinishedorder/', '/unfinishedorder/<int:o_id>')
+api.add_resource(PFinishedOrders, '/finishedorder')
+api.add_resource(ConfirmOrder, '/orderConfirm/<int:o_id>')
+
+# 订单详情
+api.add_resource(MOrder, '/menuorder/<int:o_id>')
+
+# 未完成\已完成订单
+api.add_resource(AllUnfinishedOrders, '/allunfinished')
+api.add_resource(AllCompletedOrder, '/allfinished')
 
 # 枚举类
 api.add_resource(DishCategoryResource, '/dish_categories')

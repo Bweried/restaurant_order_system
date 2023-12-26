@@ -1,4 +1,4 @@
-from flask import jsonify
+from flask import jsonify, request, make_response
 from flask_restful import Resource, reqparse
 from models import db, Dishes, DishCategory
 from decorators import admin_required, jwt_required_with_blacklist
@@ -18,10 +18,15 @@ class DishList(Resource):
                 return Dishes.to_json(dish)
             else:
                 return {'message': 'Dish not fount', 'status': 400}, 404
+        print("yes")
         return Dishes.return_all()
 
     @admin_required
     def post(self):
+        # if request.method == "OPTIONS":
+        #     print("options")
+        #     return jsonify('', 200)
+
         data = dish_parse.parse_args()
         D_class = data['class']
         if D_class not in [category.value for category in DishCategory]:
@@ -30,7 +35,7 @@ class DishList(Resource):
         existing_dish = Dishes.query.filter_by(name=data['name']).first()
 
         if existing_dish:
-            return {'message': '该菜品已存在', 'status': 400}
+            return {'message': '该菜品已存在', 'status': 200}, 200
 
         else:
             new_dish = Dishes(
@@ -65,14 +70,23 @@ class DishList(Resource):
         dish = Dishes.query.get(d_id)
 
         if not dish:
-            return {'message': '菜品不存在', 'status': 400}, 400
+            return {'message': '菜品不存在', 'status': 200}, 200
 
         db.session.delete(dish)
         db.session.commit()
 
         return {'message': '删除成功', 'status': 200}
 
-
+    # def options(self, d_id: int | None = None):
+    #     print("options")
+    #     headers = {
+    #         'Access-Control-Allow-Origin': '*',
+    #         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    #         'Access-Control-Allow-Headers': 'Content-Type, Authorization, Token',
+    #         'Access-Control-Max-Age': '2592000'  # 设置最大缓存时间，单位秒
+    #     }
+    #     response = make_response('', 200, headers)
+    #     return response
 
 
 class DishCategoryResource(Resource):

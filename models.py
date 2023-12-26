@@ -85,7 +85,6 @@ class Dishes(db.Model):
 
 class Employee(db.Model):
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    emp_id = db.Column(db.String(10), unique=True, nullable=False)
     name = db.Column(db.String(50), nullable=False)
     gender = db.Column(db.String(20), nullable=False, server_default=GenderEnum.MALE.value)
     age = db.Column(db.Integer, nullable=False)
@@ -95,7 +94,6 @@ class Employee(db.Model):
     def to_json(x: 'Employee' = None):
         return {
             'id': x.id,
-            'emp_id': x.emp_id,
             'name': x.name,
             'gender': x.gender,
             'age': x.age,
@@ -152,6 +150,15 @@ class BillingRecord(db.Model):
     total_amount = db.Column(db.Float, nullable=False)
     # discounted_amount = db.Column(db.Float, nullable=False)
     billing_time = db.Column(db.DateTime, nullable=False)
+
+    @staticmethod
+    def to_json(x: 'BillingRecord' = None):
+        return {
+            'id': x.id,
+            'order_id': x.order_id,
+            'total_amount': x.total_amount,
+            'billing_time': x.billing_time.strftime("%Y-%m-%d %H:%M:%S")
+        }
 
 
 # class DiscountRules(db.Model):
