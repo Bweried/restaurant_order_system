@@ -1,3 +1,4 @@
+from flask import jsonify
 from flask_restful import Resource, reqparse, request
 from models import db, Order, MenuOrder, BillingRecord, UserModel, AdminModel, Dishes
 from flask_jwt_extended import get_jwt, get_jwt_identity
@@ -78,7 +79,7 @@ class OrderList(Resource):
 
             db.session.commit()
 
-            return {'status': 201, 'message': '订单创建成功', 'total_amount': total_amount}, 201
+            return {'status': 200, 'message': '订单创建成功', 'total_amount': total_amount}, 200
 
         # 如果 dish_details 不存在，返回相应的消息
         return {'message': 'dish_details not found'}, 400

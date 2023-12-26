@@ -1,4 +1,4 @@
-from flask import jsonify, request, Response
+from flask import jsonify
 from flask_restful import Resource, reqparse
 from models import db, Dishes, DishCategory
 from decorators import admin_required, jwt_required_with_blacklist
@@ -17,7 +17,7 @@ class DishList(Resource):
             if dish:
                 return Dishes.to_json(dish)
             else:
-                return {'message': 'Dish not fount'}, 404
+                return {'message': 'Dish not fount', 'status': 400}, 404
         return Dishes.return_all()
 
     @admin_required
@@ -25,12 +25,12 @@ class DishList(Resource):
         data = dish_parse.parse_args()
         D_class = data['class']
         if D_class not in [category.value for category in DishCategory]:
-            return {'message': '该类别不存在'}, 400
+            return {'message': '该类别不存在', 'status': 400}
 
         existing_dish = Dishes.query.filter_by(name=data['name']).first()
 
         if existing_dish:
-            return {'message': '该菜品已存在'}, 400
+            return {'message': '该菜品已存在', 'status': 400}
 
         else:
             new_dish = Dishes(
@@ -40,7 +40,7 @@ class DishList(Resource):
             )
             db.session.add(new_dish)
             db.session.commit()
-            return {'status': 200, 'message': '添加成功'}, 200
+            return {'message': '添加成功', 'status': 200}, 201
 
     @admin_required
     def put(self, d_id: int):
@@ -65,21 +65,12 @@ class DishList(Resource):
         dish = Dishes.query.get(d_id)
 
         if not dish:
-            return {'status': 400, 'message': '菜品不存在'}, 400
+            return {'message': '菜品不存在'}, 400
 
         db.session.delete(dish)
         db.session.commit()
 
-        return {'status': 200, 'message': '删除成功'}
-
-    # @admin_required
-    # def options(self):
-    #     # 处理 OPTIONS 请求，返回带有 CORS 头的空响应
-    #     response = Response()
-    #     response.headers.add('Access-Control-Allow-Origin', '*')
-    #     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    #     response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-    #     return response, 200
+        return {'message': '删除成功'}
 
 
 class DishCategoryResource(Resource):

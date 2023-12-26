@@ -18,7 +18,7 @@ class EmpList(Resource):
             if emp:
                 return Employee.to_json(emp)
             else:
-                return {'message': 'Employee not found'}, 404
+                return {'message': 'Employee not found', 'status': 200}, 404
         return Employee.return_all()
 
     @admin_required

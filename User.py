@@ -110,7 +110,7 @@ class UserRegistration(Resource):
 
         # 验证手机号格式是否正确
         if not re.match(r'^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\d{8}$', tel):
-            return {'message': '手机号格式不正确','status':'400'}
+            return {'message': '手机号格式不正确', 'status': '400'}
 
         if not (1 <= len(username) <= 20):
             return {'message': 'Invalid username length'}, 400
@@ -124,7 +124,7 @@ class UserRegistration(Resource):
 
         # 确保不和管理员用户名重复
         if existing_user or existing_admin_user:
-            return {'message': '用户名已存在', 'status':'400'}, 400
+            return {'message': '用户名已存在', 'status': '400'}, 400
         else:
             # 创建新用户并保存到数据库中
             new_user = UserModel(username=username)
@@ -135,7 +135,7 @@ class UserRegistration(Resource):
             new_user.tel = tel
             db.session.add(new_user)
             db.session.commit()
-            return {'message': '用户注册成功','status':'200'}, 200
+            return {'message': '用户注册成功', 'status': '200'}, 200
 
 
 class UserLogin(Resource):
@@ -147,7 +147,7 @@ class UserLogin(Resource):
         print(data)
 
         if not current_user:
-            return {'message': '用户不存在', 'status':400}, 400
+            return {'message': '用户不存在', 'status': 400}, 400
 
         if UserModel.check_password(current_user, data['password']):
             access_token = create_access_token(identity=data['username'])
@@ -156,10 +156,10 @@ class UserLogin(Resource):
                 'message': f'{current_user.username}登录成功',
                 'access_token': access_token,
                 'refresh_token': refresh_token,
-                'status':200
+                'status': 200
             }
         else:
-            return {'message': '密码错误', 'status':400}, 400
+            return {'message': '密码错误', 'status': 400}, 400
 
 
 class UserLogoutAccess(Resource):
@@ -215,7 +215,7 @@ class UserProfile(Resource):
 
         db.session.commit()
 
-        return {'message': '用户信息更新完成'}, 200
+        return {'message': '用户信息更新完成', 'status': 200}, 200
 
 
 class AllUserProfile(Resource):
