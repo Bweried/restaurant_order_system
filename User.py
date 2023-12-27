@@ -55,7 +55,7 @@ class AdminLogin(Resource):
         current_user: 'AdminModel' = AdminModel.query.filter_by(username=data['username']).first()
 
         if not current_user:
-            return {'message': '用户不存在', 'status': 400}, 400
+            return {'message': '用户不存在', 'status': 400}
 
         if AdminModel.check_password(current_user, data['password']):
             access_token = create_access_token(identity=data['username'])
@@ -67,7 +67,7 @@ class AdminLogin(Resource):
                 'status': 200
             }
         else:
-            return {'message': '密码错误', 'status': 400}, 400
+            return {'message': '密码错误', 'status': 400}
 
 
 class AdminAccessLogout(Resource):
@@ -95,7 +95,6 @@ class AdminRefreshLogout(Resource):
 
 
 class UserRegistration(Resource):
-    @cross_origin()
     def post(self):
         # 表单验证
         data = user_parse.parse_args()
@@ -113,10 +112,10 @@ class UserRegistration(Resource):
             return {'message': '手机号格式不正确', 'status': '400'}
 
         if not (1 <= len(username) <= 20):
-            return {'message': 'Invalid username length'}, 400
+            return {'message': 'Invalid username length'}
 
         if not (6 <= len(password) <= 255):
-            return {'message': 'Invalid password length'}, 400
+            return {'message': 'Invalid password length'}
 
         # 检查数据库中是否存在相同的用户名
         existing_user = UserModel.query.filter_by(username=username).first()
@@ -124,7 +123,7 @@ class UserRegistration(Resource):
 
         # 确保不和管理员用户名重复
         if existing_user or existing_admin_user:
-            return {'message': '用户名已存在', 'status': '400'}, 400
+            return {'message': '用户名已存在', 'status': '400'}
         else:
             # 创建新用户并保存到数据库中
             new_user = UserModel(username=username)
@@ -147,7 +146,7 @@ class UserLogin(Resource):
         print(data)
 
         if not current_user:
-            return {'message': '用户不存在', 'status': 400}, 400
+            return {'message': '用户不存在', 'status': 400}
 
         if UserModel.check_password(current_user, data['password']):
             access_token = create_access_token(identity=data['username'])
@@ -159,7 +158,7 @@ class UserLogin(Resource):
                 'status': 200
             }
         else:
-            return {'message': '密码错误', 'status': 400}, 400
+            return {'message': '密码错误', 'status': 400}
 
 
 class UserLogoutAccess(Resource):
@@ -191,13 +190,13 @@ class UserLogoutRefresh(Resource):
 
 
 class UserProfile(Resource):
-    @jwt_required_with_blacklist
+    @jwt_required()
     def get(self):
         current_username = get_jwt_identity()
         current_user = UserModel.query.filter_by(username=current_username).first()
         return UserModel.to_json(current_user)
 
-    @jwt_required_with_blacklist
+    @jwt_required()
     def put(self):
         current_username = get_jwt_identity()
         current_user: 'UserModel' = UserModel.query.filter_by(username=current_username).first()
@@ -219,7 +218,7 @@ class UserProfile(Resource):
 
 
 class AllUserProfile(Resource):
-    @admin_required
+    @jwt_required()
     def get(self):
         return UserModel.return_all()
 

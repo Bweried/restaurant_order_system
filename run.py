@@ -53,7 +53,8 @@ api.add_resource(UserProfile, '/user/profile')
 api.add_resource(AllUserProfile, '/users/profile')
 
 # Dishes
-api.add_resource(DishList, '/dish/', '/dish/<int:d_id>', endpoint='dish_list')
+api.add_resource(DishList, '/dish/')
+api.add_resource(DishList, '/dish/<int:d_id>', endpoint='dish_list')
 
 # Employee
 api.add_resource(EmpList, '/emp', '/emp/<int:e_id>', endpoint='emp_list')
@@ -77,4 +78,4 @@ api.add_resource(AllCompletedOrder, '/allfinished')
 api.add_resource(DishCategoryResource, '/dish_categories')
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True)

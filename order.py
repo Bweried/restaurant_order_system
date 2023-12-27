@@ -1,7 +1,7 @@
 from flask import jsonify, abort
 from flask_restful import Resource, reqparse, request
 from models import db, Order, MenuOrder, BillingRecord, UserModel, AdminModel, Dishes
-from flask_jwt_extended import get_jwt, get_jwt_identity
+from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 from datetime import datetime
 from decorators import admin_required, jwt_required_with_blacklist
 
@@ -12,13 +12,14 @@ from decorators import admin_required, jwt_required_with_blacklist
 
 
 class OrderList(Resource):
-    @admin_required
+    @jwt_required()
     def get(self):
         return Order.return_all()
 
-    @jwt_required_with_blacklist
+    @jwt_required()
     def post(self):
         current_username = get_jwt_identity()
+        print(current_username)
         current_user: 'UserModel' = UserModel.query.filter_by(username=current_username).first()
         time = datetime.now()
 
@@ -39,57 +40,54 @@ class OrderList(Resource):
             # 计算订单总金额
             total_amount = 0.0
 
+            # print(dish_details)
+
             # 循环遍历dish_details，为每个菜品创建相关的MenuOrder
-            for dish_detail in dish_details:
+            # for dish_detail in dish_details:
                 # 校验dish_id和quantity是否存在且为整数类型
-                if 'dish_id' in dish_detail and 'quantity' in dish_detail:
-                    dish_id = dish_detail['dish_id']
-                    quantity = dish_detail['quantity']
+                # if 'dish_id' in dish_detail and 'quantity' in dish_detail:
+            dish_id = dish_details[0]['dish_id']
+            quantity = dish_details[0]['quantity']
 
-                    # 确保dish_id和quantity是整数类型
-                    if not isinstance(dish_id, int) or not isinstance(quantity, int):
-                        return {'message': 'dish_id and quantity must be integers'}, 400
+            print(dish_id)
+            print(quantity)
 
-                    # 查询是否有该菜品
-                    dish = Dishes.query.filter_by(id=dish_id).first()
-                    if not dish:
-                        return {'message': "该菜品不存在"}, 400
+            # 确保dish_id和quantity是整数类型
+            if not isinstance(dish_id, int) or not isinstance(quantity, int):
+                return {'message': 'dish_id and quantity must be integers'}
 
-                    menu_order = MenuOrder(
-                        order_id=new_order.id,
-                        dish_id=dish_id,
-                        quantity=quantity
-                    )
-                    db.session.add(menu_order)
+            # 查询是否有该菜品
+            dish = Dishes.query.filter_by(id=dish_id).first()
+            if not dish:
+                return {'message': "该菜品不存在"}
 
-                    # 账单金额
-                    total_amount += dish.price * quantity
+            menu_order = MenuOrder(
+                order_id=new_order.id,
+                dish_id=dish_id,
+                quantity=quantity
+            )
+            db.session.add(menu_order)
+            db.session.commit()
 
-                else:
-                    # 如果dish_id或quantity不存在，返回相应的错误消息
-                    return {'message': 'dish_id or quantity not found in dish_details'}, 400
+            # 账单金额
+            total_amount += dish.price * quantity
 
-            # 创建订单记录
-            # billing_record = BillingRecord(
-            #     order_id=new_order.id,
-            #     total_amount=total_amount,
-            #     billing_time=time
-            # )
-            # db.session.add(billing_record)
-            #
-            # db.session.commit()
+        else:
+            # 如果dish_id或quantity不存在，返回相应的错误消息
+            return {'message': 'dish_id or quantity not found in dish_details'}
 
-            return {'status': 200, 'message': '订单创建成功', 'total_amount': total_amount}, 200
+        print(dish_details)
+        return {'status': 200, 'message': '订单创建成功', 'total_amount': total_amount}, 200
 
-        # 如果 dish_details 不存在，返回相应的消息
-        return {'message': 'dish_details not found'}, 400
+        # # 如果 dish_details 不存在，返回相应的消息
+        # return {'message': 'dish_details not found'}
 
-    @jwt_required_with_blacklist
+    @jwt_required()
     def delete(self, o_id: int):
         order: 'Order' = Order.query.get(o_id)
 
         if not order:
-            return {'message': '该订单不存在', 'status': 200}, 200
+            return {'message': '该订单不存在', 'status': 400}
 
         db.session.delete(order)
         db.session.commit()
@@ -97,8 +95,8 @@ class OrderList(Resource):
 
 
 class ConfirmOrder(Resource):
-    @jwt_required_with_blacklist
-    def get(self, o_id: int):
+    @jwt_required()
+    def post(self, o_id: int):
         current_username = get_jwt_identity()
         current_user: 'UserModel' = UserModel.query.filter_by(username=current_username).first()
         time = datetime.now()
@@ -109,12 +107,12 @@ class ConfirmOrder(Resource):
             return {'message': 'Order not found'}, 404
 
         # 获取订单的菜品详情，并关联 Dishes 表以获取单价
-        menu_orders = MenuOrder.query \
+        menu_orders = db.session.query(MenuOrder, Dishes) \
             .join(Dishes, MenuOrder.dish_id == Dishes.id) \
             .filter(MenuOrder.order_id == o_id).all()
 
         # 计算订单总金额
-        total_amount = sum(menu_order.dish.price * menu_order.quantity for menu_order in menu_orders)
+        total_amount = sum(menu_order.Dishes.price * menu_order.MenuOrder.quantity for menu_order in menu_orders)
 
         # 创建订单记录
         billing_record = BillingRecord(
@@ -130,7 +128,7 @@ class ConfirmOrder(Resource):
 
 # 个人未完成订单
 class PUnFinishedOrders(Resource):
-    @jwt_required_with_blacklist
+    @jwt_required()
     def get(self):
         current_username = get_jwt_identity()
         current_user = UserModel.query.filter_by(username=current_username).first()
@@ -146,7 +144,7 @@ class PUnFinishedOrders(Resource):
 
         return {'status': 400, 'message': '用户不存在'}, 404
 
-    @jwt_required_with_blacklist
+    @jwt_required()
     def put(self, o_id: int | None = None):
         if o_id is None:
             abort(400, message='订单编号不能为空')
@@ -171,7 +169,7 @@ class PUnFinishedOrders(Resource):
 
 
 class PFinishedOrders(Resource):
-    @jwt_required_with_blacklist
+    @jwt_required()
     def get(self):
         finished_orders = BillingRecord.query.all()
         orders_data = [BillingRecord.to_json(order) for order in finished_orders]
@@ -181,7 +179,7 @@ class PFinishedOrders(Resource):
 
 # 返回订单菜品信息
 class MOrder(Resource):
-    @jwt_required_with_blacklist
+    @jwt_required()
     def get(self, o_id: int | None = None):
         if o_id is None:
             abort(400, message='订单编号不能为空')
@@ -211,7 +209,7 @@ class MOrder(Resource):
 
 # 所有未完成订单
 class AllUnfinishedOrders(Resource):
-    @jwt_required_with_blacklist
+    @jwt_required()
     def get(self):
         try:
             # 查询未完成订单
@@ -232,7 +230,7 @@ class AllUnfinishedOrders(Resource):
 
 # 所有已完成订单
 class AllCompletedOrder(Resource):
-    @jwt_required_with_blacklist
+    @jwt_required()
     def get(self):
         completed_orders = BillingRecord.query.all()
 
