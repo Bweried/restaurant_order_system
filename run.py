@@ -48,6 +48,8 @@ api.add_resource(UserLogoutRefresh, '/logout')
 api.add_resource(TokenRefresh, '/token/refresh')
 api.add_resource(SecretResource, '/secret')
 
+api.add_resource(UserChangePwd, '/user/pwd_chg')
+
 # UserProfile
 api.add_resource(UserProfile, '/user/profile')
 api.add_resource(AllUserProfile, '/users/profile')

@@ -6,11 +6,6 @@ from datetime import datetime
 from decorators import admin_required, jwt_required_with_blacklist
 
 
-# 不会设置。手动校验数据
-# dish_parse = reqparse.RequestParser()
-# dish_parse.add_argument('dish_details', type=list, help='dish_details cannot be blank', required=True)
-
-
 class OrderList(Resource):
     @jwt_required()
     def get(self):
@@ -40,12 +35,10 @@ class OrderList(Resource):
             # 计算订单总金额
             total_amount = 0.0
 
-            # print(dish_details)
-
-            # 循环遍历dish_details，为每个菜品创建相关的MenuOrder
+            # # 循环遍历dish_details，为每个菜品创建相关的MenuOrder
             # for dish_detail in dish_details:
-                # 校验dish_id和quantity是否存在且为整数类型
-                # if 'dish_id' in dish_detail and 'quantity' in dish_detail:
+            #     # 校验dish_id和quantity是否存在且为整数类型
+            # if 'dish_id' in dish_detail and 'quantity' in dish_detail:
             dish_id = dish_details[0]['dish_id']
             quantity = dish_details[0]['quantity']
 
@@ -76,7 +69,6 @@ class OrderList(Resource):
             # 如果dish_id或quantity不存在，返回相应的错误消息
             return {'message': 'dish_id or quantity not found in dish_details'}
 
-        print(dish_details)
         return {'status': 200, 'message': '订单创建成功', 'total_amount': total_amount}, 200
 
         # # 如果 dish_details 不存在，返回相应的消息
@@ -171,10 +163,20 @@ class PUnFinishedOrders(Resource):
 class PFinishedOrders(Resource):
     @jwt_required()
     def get(self):
-        finished_orders = BillingRecord.query.all()
-        orders_data = [BillingRecord.to_json(order) for order in finished_orders]
+        current_username = get_jwt_identity()
+        current_user: 'UserModel' = UserModel.query.filter_by(username=current_username).first()
 
-        return {'status': 200, 'tabledata': orders_data}, 200
+        print(current_username)
+        print(current_user.id)
+
+        if current_user:
+            # 获取当前用户的已付款订单（在 billing_record 表中的订单）
+            finished_orders = BillingRecord.query.join(Order).filter(Order.customer_id == current_user.id).all()
+            orders_data = [BillingRecord.to_json(order) for order in finished_orders]
+
+            return {'status': 200, 'tabledata': orders_data}, 200
+
+        return {'status': 400, 'message': '用户不存在'}, 404
 
 
 # 返回订单菜品信息

@@ -217,6 +217,37 @@ class UserProfile(Resource):
         return {'message': '用户信息更新完成', 'status': 200}, 200
 
 
+class UserChangePwd(Resource):
+    @jwt_required()
+    def post(self):
+        current_username = get_jwt_identity()
+        current_user: 'UserModel' = UserModel.query.filter_by(username=current_username).first()
+
+        if not current_user:
+            return {'status': 400, 'message': '用户不存在'}, 404
+
+        data = request.get_json()
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('current_password', type=str, required=True, help='当前密码不能为空')
+        parser.add_argument('new_password', type=str, required=True, help='新密码不能为空')
+
+        args = parser.parse_args()
+
+        current_password = args['current_password']
+        new_password = args['new_password']
+
+        # 验证当前密码是否正确
+        if not UserModel.check_password(current_user, current_password):
+            return {'status': 400, 'message': '当前密码不正确'}
+
+        # 更新用户密码
+        current_user.set_password(new_password)
+        db.session.commit()
+
+        return {'status': 200, 'message': '密码修改成功'}, 200
+
+
 class AllUserProfile(Resource):
     @jwt_required()
     def get(self):
