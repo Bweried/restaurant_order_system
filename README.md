@@ -4,14 +4,5 @@ python==3.10.13
 
 Mysql库：restaurant_order_system  
 
-环境变量`FLASK_APP`:  
-    $env:FLASK_APP="run.py"
-
-数据库创建：  
-flask db init  
-flask db migrate  
-flask db upgrade  
-
-数据库迁移：  
-flask db migrate  
-flask db upgrade  
+手动创建数据库。  
+第一次运行时将run.py中的main函数注释部分注释，将自动创建表。之后删除该语句。

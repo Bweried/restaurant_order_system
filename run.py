@@ -80,4 +80,7 @@ api.add_resource(AllCompletedOrder, '/allfinished')
 api.add_resource(DishCategoryResource, '/dish_categories')
 
 if __name__ == '__main__':
+    # # 第一次运行将下列代码取消注释
+    # with app.app_context():
+    #     db.create_all()
     app.run(debug=True)

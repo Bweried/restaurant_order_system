@@ -74,17 +74,6 @@ class DishList(Resource):
 
         return {'message': '删除成功', 'status': 200}
 
-    # def options(self, d_id: int | None = None):
-    #     print("options")
-    #     headers = {
-    #         'Access-Control-Allow-Origin': '*',
-    #         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    #         'Access-Control-Allow-Headers': 'Content-Type, Authorization, Token',
-    #         'Access-Control-Max-Age': '2592000'  # 设置最大缓存时间，单位秒
-    #     }
-    #     response = make_response('', 200, headers)
-    #     return response
-
 
 class DishCategoryResource(Resource):
     @jwt_required()

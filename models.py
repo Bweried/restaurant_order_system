@@ -160,8 +160,3 @@ class BillingRecord(db.Model):
             'billing_time': x.billing_time.strftime("%Y-%m-%d %H:%M:%S")
         }
 
-
-# class DiscountRules(db.Model):
-#     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-#     spending_amount = db.Column(db.Float, nullable=False)
-#     discount_percentage = db.Column(db.Float, nullable=False)

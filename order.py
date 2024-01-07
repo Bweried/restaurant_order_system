@@ -35,10 +35,6 @@ class OrderList(Resource):
             # 计算订单总金额
             total_amount = 0.0
 
-            # # 循环遍历dish_details，为每个菜品创建相关的MenuOrder
-            # for dish_detail in dish_details:
-            #     # 校验dish_id和quantity是否存在且为整数类型
-            # if 'dish_id' in dish_detail and 'quantity' in dish_detail:
             dish_id = dish_details[0]['dish_id']
             quantity = dish_details[0]['quantity']
 
@@ -70,9 +66,6 @@ class OrderList(Resource):
             return {'message': 'dish_id or quantity not found in dish_details'}
 
         return {'status': 200, 'message': '订单创建成功', 'total_amount': total_amount}, 200
-
-        # # 如果 dish_details 不存在，返回相应的消息
-        # return {'message': 'dish_details not found'}
 
     @jwt_required()
     def delete(self, o_id: int):
